@@ -80,8 +80,8 @@ export default function DashboardLayout() {
                 <Boxes className="w-5 h-5 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-900 leading-tight">Acme Corporation</span>
-                <span className="text-xs text-slate-500 leading-tight">Global Logistics Division</span>
+                <span className="text-sm font-bold text-slate-900 leading-tight">Balaji Enterprises</span>
+                <span className="text-xs text-slate-500 leading-tight"></span>
               </div>
             </div>
           </div>
