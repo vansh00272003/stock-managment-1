@@ -58,7 +58,7 @@ export default function Dashboard() {
             <Package className="h-4 w-4 text-slate-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$2.4M</div>
+            <div className="text-2xl font-bold">₹2.4M</div>
             <p className="text-xs text-emerald-500 flex items-center mt-1">
               <TrendingUp className="w-3 h-3 mr-1" /> +4% from last month
             </p>

@@ -195,7 +195,7 @@ export default function Orders() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-slate-500">{order.date}</TableCell>
-                    <TableCell>${order.total.toFixed(2)}</TableCell>
+                    <TableCell>₹{order.total.toFixed(2)}</TableCell>
                     <TableCell>{order.user}</TableCell>
                     <TableCell>
                       <Badge 
@@ -265,7 +265,7 @@ export default function Orders() {
                   <Input id="qty" name="qty" type="number" min="1" defaultValue="1" required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="price">Unit Price ($)</Label>
+                  <Label htmlFor="price">Unit Price (₹)</Label>
                   <Input id="price" name="price" type="number" step="0.01" placeholder="0.00" required />
                 </div>
               </div>
@@ -301,7 +301,7 @@ export default function Orders() {
                     <Input id="edit-qty" name="qty" type="number" min="1" defaultValue="1" required />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-price">Unit Price ($)</Label>
+                    <Label htmlFor="edit-price">Unit Price (₹)</Label>
                     <Input id="edit-price" name="price" type="number" step="0.01" defaultValue={(editingOrder.total).toFixed(2)} required />
                   </div>
                 </div>

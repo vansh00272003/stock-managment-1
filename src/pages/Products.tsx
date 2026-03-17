@@ -114,7 +114,7 @@ export default function Products() {
                   <TableCell className="font-mono text-xs">{product.sku}</TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.category}</TableCell>
-                  <TableCell>${product.price.toFixed(2)}</TableCell>
+                  <TableCell>₹{product.price.toFixed(2)}</TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>
                     {product.stock <= product.reorder ? (
@@ -166,11 +166,11 @@ export default function Products() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="price">Selling Price ($)</Label>
+                  <Label htmlFor="price">Selling Price (₹)</Label>
                   <Input id="price" name="price" type="number" step="0.01" placeholder="0.00" required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="cost">Cost Price ($)</Label>
+                  <Label htmlFor="cost">Cost Price (₹)</Label>
                   <Input id="cost" name="cost" type="number" step="0.01" placeholder="0.00" required />
                 </div>
               </div>
@@ -213,7 +213,7 @@ export default function Products() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-price">Selling Price ($)</Label>
+                    <Label htmlFor="edit-price">Selling Price (₹)</Label>
                     <Input id="edit-price" name="price" type="number" step="0.01" defaultValue={editingProduct.price} required />
                   </div>
                   <div className="grid gap-2">

@@ -24,6 +24,7 @@ interface InvoiceItem {
   description: string;
   quantity: number;
   price: number;
+  gst: number;
 }
 
 interface Invoice {
@@ -48,10 +49,10 @@ const initialInvoices: Invoice[] = [
     dueDate: '2026-04-10',
     purchaseOrder: 'PO-99281',
     items: [
-      { id: '1', productId: '1', sku: 'LAP-001', description: 'ThinkPad X1 Carbon', quantity: 2, price: 1299.99 },
-      { id: '2', productId: '2', sku: 'MON-023', description: 'Dell UltraSharp 27"', quantity: 2, price: 499.99 }
+      { id: '1', productId: '1', sku: 'LAP-001', description: 'ThinkPad X1 Carbon', quantity: 2, price: 1299.99, gst: 18 },
+      { id: '2', productId: '2', sku: 'MON-023', description: 'Dell UltraSharp 27"', quantity: 2, price: 499.99, gst: 18 }
     ],
-    total: 3599.96,
+    total: 4247.95,
     status: 'PAID',
     commercialInvoiceUrl: 'commercial_invoice_INV-2026-001.pdf'
   },
@@ -63,9 +64,9 @@ const initialInvoices: Invoice[] = [
     dueDate: '2026-04-15',
     purchaseOrder: 'PO-10022',
     items: [
-      { id: '1', productId: '4', sku: 'CHAIR-05', description: 'Herman Miller Aeron', quantity: 5, price: 1199.00 }
+      { id: '1', productId: '4', sku: 'CHAIR-05', description: 'Herman Miller Aeron', quantity: 5, price: 1199.00, gst: 18 }
     ],
-    total: 5995.00,
+    total: 7074.10,
     status: 'DRAFT'
   }
 ];
@@ -100,7 +101,7 @@ export default function Invoices() {
     nextMonth.setMonth(nextMonth.getMonth() + 1);
     setDueDate(nextMonth.toISOString().split('T')[0]);
     
-    setItems([{ id: Math.random().toString(), productId: '', sku: '', description: '', quantity: 1, price: 0 }]);
+    setItems([{ id: Math.random().toString(), productId: '', sku: '', description: '', quantity: 1, price: 0, gst: 0 }]);
     setIsModalOpen(true);
   };
 
@@ -116,7 +117,7 @@ export default function Invoices() {
   };
 
   const addItem = () => {
-    setItems([...items, { id: Math.random().toString(), productId: '', sku: '', description: '', quantity: 1, price: 0 }]);
+    setItems([...items, { id: Math.random().toString(), productId: '', sku: '', description: '', quantity: 1, price: 0, gst: 0 }]);
   };
 
   const handleProductSelect = (itemId: string, productId: string) => {
@@ -124,7 +125,7 @@ export default function Invoices() {
     if (product) {
       setItems(items.map(item => {
         if (item.id === itemId) {
-          return { ...item, productId: product.id, sku: product.sku, description: product.name, price: product.price };
+          return { ...item, productId: product.id, sku: product.sku, description: product.name, price: product.price, gst: 18 };
         }
         return item;
       }));
@@ -146,8 +147,16 @@ export default function Invoices() {
     }));
   };
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
     return items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+  };
+
+  const calculateTotalTax = () => {
+    return items.reduce((sum, item) => sum + (item.quantity * item.price * (item.gst || 0) / 100), 0);
+  };
+
+  const calculateTotal = () => {
+    return calculateSubtotal() + calculateTotalTax();
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -229,10 +238,12 @@ ${invoice.customerName}
 ${invoice.customerEmail}
 
 Items:
-${invoice.items.map(item => `- [${item.sku}] ${item.description} x${item.quantity} @ $${item.price.toFixed(2)} = $${(item.quantity * item.price).toFixed(2)}`).join('\n')}
+${invoice.items.map(item => `- [${item.sku}] ${item.description} x${item.quantity} @ ₹${item.price.toFixed(2)} (GST: ${item.gst || 0}%) = ₹${(item.quantity * item.price * (1 + (item.gst || 0) / 100)).toFixed(2)}`).join('\n')}
 
 =========================================
-Total: $${invoice.total.toFixed(2)}
+Subtotal: ₹${invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2)}
+Total GST: ₹${invoice.items.reduce((sum, item) => sum + (item.quantity * item.price * (item.gst || 0) / 100), 0).toFixed(2)}
+Total: ₹${invoice.total.toFixed(2)}
 Status: ${invoice.status}
     `.trim();
 
@@ -311,7 +322,7 @@ Status: ${invoice.status}
                   </TableCell>
                   <TableCell className="text-slate-500">{invoice.date}</TableCell>
                   <TableCell className="text-slate-500">{invoice.dueDate}</TableCell>
-                  <TableCell className="font-medium">${invoice.total.toFixed(2)}</TableCell>
+                  <TableCell className="font-medium">₹{invoice.total.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge 
                       variant={getStatusBadgeVariant(invoice.status)}
@@ -451,7 +462,7 @@ Status: ${invoice.status}
                         />
                       </div>
                       <div className="grid gap-2 w-32">
-                        {index === 0 && <Label className="text-xs">Price ($)</Label>}
+                        {index === 0 && <Label className="text-xs">Price (₹)</Label>}
                         <Input 
                           type="number" 
                           step="0.01" 
@@ -461,10 +472,21 @@ Status: ${invoice.status}
                           required 
                         />
                       </div>
+                      <div className="grid gap-2 w-20">
+                        {index === 0 && <Label className="text-xs">GST (%)</Label>}
+                        <Input 
+                          type="number" 
+                          min="0" 
+                          max="100"
+                          value={item.gst || 0} 
+                          onChange={e => updateItem(item.id, 'gst', Number(e.target.value))} 
+                          required 
+                        />
+                      </div>
                       <div className="grid gap-2 w-24">
                         {index === 0 && <Label className="text-xs">Total</Label>}
                         <div className="h-10 flex items-center font-medium text-sm">
-                          ${(item.quantity * item.price).toFixed(2)}
+                          ₹{(item.quantity * item.price * (1 + (item.gst || 0) / 100)).toFixed(2)}
                         </div>
                       </div>
                       <div className="grid gap-2 pt-0">
@@ -488,15 +510,15 @@ Status: ${invoice.status}
                   <div className="w-64 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-500">Subtotal</span>
-                      <span className="font-medium">${calculateTotal().toFixed(2)}</span>
+                      <span className="font-medium">₹{calculateSubtotal().toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Tax (0%)</span>
-                      <span className="font-medium">$0.00</span>
+                      <span className="text-slate-500">Total GST</span>
+                      <span className="font-medium">₹{calculateTotalTax().toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-base font-bold pt-2 border-t">
                       <span>Total</span>
-                      <span>${calculateTotal().toFixed(2)}</span>
+                      <span>₹{calculateTotal().toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -589,6 +611,7 @@ Status: ${invoice.status}
                       <TableHead>Description</TableHead>
                       <TableHead className="text-right">Qty</TableHead>
                       <TableHead className="text-right">Price</TableHead>
+                      <TableHead className="text-right">GST %</TableHead>
                       <TableHead className="text-right">Total</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -598,8 +621,9 @@ Status: ${invoice.status}
                         <TableCell className="font-mono text-xs">{item.sku}</TableCell>
                         <TableCell className="font-medium">{item.description}</TableCell>
                         <TableCell className="text-right">{item.quantity}</TableCell>
-                        <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">${(item.quantity * item.price).toFixed(2)}</TableCell>
+                        <TableCell className="text-right">₹{item.price.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">{item.gst || 0}%</TableCell>
+                        <TableCell className="text-right">₹{(item.quantity * item.price * (1 + (item.gst || 0) / 100)).toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -610,15 +634,15 @@ Status: ${invoice.status}
                 <div className="w-64 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500">Subtotal</span>
-                    <span className="font-medium">${viewInvoice.total.toFixed(2)}</span>
+                    <span className="font-medium">₹{viewInvoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Tax (0%)</span>
-                    <span className="font-medium">$0.00</span>
+                    <span className="text-slate-500">Total GST</span>
+                    <span className="font-medium">₹{viewInvoice.items.reduce((sum, item) => sum + (item.quantity * item.price * (item.gst || 0) / 100), 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-xl font-bold pt-2 border-t">
                     <span>Total</span>
-                    <span>${viewInvoice.total.toFixed(2)}</span>
+                    <span>₹{viewInvoice.total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
