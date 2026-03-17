@@ -84,21 +84,41 @@ export default function Invoices() {
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dueDateDays, setDueDateDays] = useState(30);
   const [dueDate, setDueDate] = useState('');
   const [purchaseOrder, setPurchaseOrder] = useState('');
   const [items, setItems] = useState<InvoiceItem[]>([]);
   
   const addLog = useLogStore(state => state.addLog);
 
+  React.useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    let hasChanges = false;
+    const updatedInvoices = invoices.map(inv => {
+      if (inv.status !== 'PAID' && inv.status !== 'OVERDUE' && inv.dueDate < today) {
+        hasChanges = true;
+        return { ...inv, status: 'OVERDUE' as const };
+      }
+      return inv;
+    });
+    
+    if (hasChanges) {
+      setInvoices(updatedInvoices);
+    }
+  }, [invoices]);
+
   const openCreateModal = () => {
     setEditingInvoice(null);
     setCustomerName('');
     setCustomerEmail('');
     setPurchaseOrder('');
-    setInvoiceDate(new Date().toISOString().split('T')[0]);
     
-    const nextMonth = new Date();
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const today = new Date();
+    setInvoiceDate(today.toISOString().split('T')[0]);
+    
+    setDueDateDays(30);
+    const nextMonth = new Date(today);
+    nextMonth.setDate(nextMonth.getDate() + 30);
     setDueDate(nextMonth.toISOString().split('T')[0]);
     
     setItems([{ id: Math.random().toString(), productId: '', sku: '', description: '', quantity: 1, price: 0, gst: 0 }]);
@@ -112,8 +132,43 @@ export default function Invoices() {
     setPurchaseOrder(invoice.purchaseOrder || '');
     setInvoiceDate(invoice.date);
     setDueDate(invoice.dueDate);
+    
+    const start = new Date(invoice.date);
+    const end = new Date(invoice.dueDate);
+    const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    setDueDateDays(diffDays >= 0 ? diffDays : 0);
+    
     setItems([...invoice.items]);
     setIsModalOpen(true);
+  };
+
+  const handleInvoiceDateChange = (dateStr: string) => {
+    setInvoiceDate(dateStr);
+    if (dateStr) {
+      const date = new Date(dateStr);
+      date.setDate(date.getDate() + dueDateDays);
+      setDueDate(date.toISOString().split('T')[0]);
+    }
+  };
+
+  const handleDueDateDaysChange = (daysStr: string) => {
+    const days = parseInt(daysStr, 10) || 0;
+    setDueDateDays(days);
+    if (invoiceDate) {
+      const date = new Date(invoiceDate);
+      date.setDate(date.getDate() + days);
+      setDueDate(date.toISOString().split('T')[0]);
+    }
+  };
+
+  const handleDueDateChange = (dateStr: string) => {
+    setDueDate(dateStr);
+    if (invoiceDate && dateStr) {
+      const start = new Date(invoiceDate);
+      const end = new Date(dateStr);
+      const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      setDueDateDays(diffDays >= 0 ? diffDays : 0);
+    }
   };
 
   const addItem = () => {
@@ -409,14 +464,18 @@ Status: ${invoice.status}
                     <Input id="customerEmail" type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} required />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="invoiceDate">Invoice Date</Label>
-                    <Input id="invoiceDate" type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} required />
+                    <Input id="invoiceDate" type="date" value={invoiceDate} onChange={e => handleInvoiceDateChange(e.target.value)} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="dueDateDays">Terms (Days)</Label>
+                    <Input id="dueDateDays" type="number" min="0" value={dueDateDays} onChange={e => handleDueDateDaysChange(e.target.value)} required />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="dueDate">Due Date</Label>
-                    <Input id="dueDate" type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} required />
+                    <Input id="dueDate" type="date" value={dueDate} onChange={e => handleDueDateChange(e.target.value)} required />
                   </div>
                 </div>
                 <div className="grid gap-2">
