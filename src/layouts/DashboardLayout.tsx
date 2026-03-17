@@ -7,6 +7,7 @@ import {
   Package, 
   Boxes, 
   ShoppingCart, 
+  FileText,
   LogOut, 
   Menu,
   Bell,
@@ -31,6 +32,7 @@ export default function DashboardLayout() {
     { name: 'Products', href: '/products', icon: Package, roles: ['SUPER_ADMIN', 'STOCK_MANAGER', 'STANDARD_USER'] },
     { name: 'Stock Levels', href: '/stock', icon: Boxes, roles: ['SUPER_ADMIN', 'STOCK_MANAGER', 'STANDARD_USER'] },
     { name: 'Orders', href: '/orders', icon: ShoppingCart, roles: ['SUPER_ADMIN', 'STOCK_MANAGER', 'STANDARD_USER'] },
+    { name: 'Invoices', href: '/invoices', icon: FileText, roles: ['SUPER_ADMIN', 'STOCK_MANAGER', 'STANDARD_USER'] },
     { name: 'Activity Logs', href: '/logs', icon: ClipboardList, roles: ['SUPER_ADMIN', 'STOCK_MANAGER'] },
   ];
 
@@ -80,8 +82,8 @@ export default function DashboardLayout() {
                 <Boxes className="w-5 h-5 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-900 leading-tight">Balaji Enterprises</span>
-                <span className="text-xs text-slate-500 leading-tight"></span>
+                <span className="text-sm font-bold text-slate-900 leading-tight">Acme Corporation</span>
+                <span className="text-xs text-slate-500 leading-tight">Global Logistics Division</span>
               </div>
             </div>
           </div>

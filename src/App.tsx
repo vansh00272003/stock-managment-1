@@ -11,6 +11,7 @@ import Users from './pages/Users';
 import Products from './pages/Products';
 import Stock from './pages/Stock';
 import Orders from './pages/Orders';
+import Invoices from './pages/Invoices';
 import Logs from './pages/Logs';
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="products" element={<Products />} />
             <Route path="stock" element={<Stock />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="invoices" element={<Invoices />} />
             <Route path="logs" element={<Logs />} />
           </Route>
         </Routes>
