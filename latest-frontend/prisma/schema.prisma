@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  STOCK_MANAGER
+  STANDARD_USER
+}
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  passwordHash     String
+  firstName        String
+  lastName         String
+  role             Role     @default(STANDARD_USER)
+  twoFactorEnabled Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  stockMovements StockMovement[]
+  orders         Order[]
+  auditLogs      AuditLog[]
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  name         String
+  sku          String   @unique
+  barcode      String?  @unique
+  category     String
+  description  String?
+  price        Float
+  cost         Float
+  supplier     String?
+  reorderPoint Int      @default(10)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  stockLevels    StockLevel[]
+  stockMovements StockMovement[]
+  orderItems     OrderItem[]
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  name      String
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stockLevels          StockLevel[]
+  movementsFrom        StockMovement[] @relation("FromLocation")
+  movementsTo          StockMovement[] @relation("ToLocation")
+}
+
+model StockLevel {
+  id         String   @id @default(uuid())
+  productId  String
+  locationId String
+  quantity   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, locationId])
+}
+
+enum MovementType {
+  INBOUND
+  OUTBOUND
+  TRANSFER
+  ADJUSTMENT
+}
+
+model StockMovement {
+  id             String       @id @default(uuid())
+  productId      String
+  fromLocationId String?
+  toLocationId   String?
+  quantity       Int
+  type           MovementType
+  reason         String?
+  userId         String
+  createdAt      DateTime     @default(now())
+
+  product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  fromLocation Location? @relation("FromLocation", fields: [fromLocationId], references: [id])
+  toLocation   Location? @relation("ToLocation", fields: [toLocationId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
+}
+
+enum OrderType {
+  PURCHASE
+  SALES
+}
+
+enum OrderStatus {
+  PENDING
+  APPROVED
+  FULFILLED
+  CANCELLED
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  type        OrderType
+  status      OrderStatus @default(PENDING)
+  userId      String
+  totalAmount Float       @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Float
+
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
