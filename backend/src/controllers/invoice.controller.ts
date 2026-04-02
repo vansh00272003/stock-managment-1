@@ -70,9 +70,9 @@ export const getInvoices = async (req: Request, res: Response) => {
 
 export const getInvoiceById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const invoice = await prisma.invoice.findUnique({
-      where: { id },
+      where: { id } as any,
       include: {
         order: {
           include: { 
@@ -123,7 +123,7 @@ export const createInvoice = async (req: Request, res: Response) => {
 
 export const updateInvoice = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { dueDate, customerName, customerEmail, purchaseOrder, amount, items, status, commercialInvoiceUrl } = req.body;
 
     const updateData: any = {
@@ -153,7 +153,7 @@ export const updateInvoice = async (req: Request, res: Response) => {
 
 export const updateInvoiceStatus = async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+    const id = req.params.id as string;
       const { status, commercialInvoiceUrl } = req.body;
   
       const updateData: any = {};
@@ -176,7 +176,7 @@ export const updateInvoiceStatus = async (req: Request, res: Response) => {
 
 export const deleteInvoice = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.invoice.delete({ where: { id } });
     res.json({ message: 'Invoice deleted successfully' });
   } catch (error) {

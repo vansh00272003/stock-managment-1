@@ -128,7 +128,7 @@ export const getStockMovements = async (req: Request, res: Response) => {
 
 export const updateStockLevel = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { quantity } = req.body;
     const stockLevel = await prisma.stockLevel.update({
       where: { id },
@@ -143,7 +143,7 @@ export const updateStockLevel = async (req: Request, res: Response) => {
 
 export const deleteStockLevel = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.stockLevel.delete({ where: { id } });
     res.status(204).send();
   } catch (error) {

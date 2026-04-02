@@ -12,7 +12,7 @@ export const getLocations = async (req: Request, res: Response) => {
 
 export const getLocationById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const location = await prisma.location.findUnique({ where: { id } });
     if (!location) {
       res.status(404).json({ message: 'Location not found' });
@@ -38,7 +38,7 @@ export const createLocation = async (req: Request, res: Response) => {
 
 export const updateLocation = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { name, address } = req.body;
     const location = await prisma.location.update({
       where: { id },
@@ -52,7 +52,7 @@ export const updateLocation = async (req: Request, res: Response) => {
 
 export const deleteLocation = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.location.delete({ where: { id } });
     res.status(204).send();
   } catch (error) {
