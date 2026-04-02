@@ -1,0 +1,5 @@
+{
+  "name": "Enterprise Stock Management",
+  "description": "Enterprise User & Stock Management System with RBAC, inventory tracking, and reporting.",
+  "requestFramePermissions": []
+}
